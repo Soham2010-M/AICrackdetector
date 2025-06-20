@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Civil Infrastructure Defect Detection{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Page Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 mb-1 fw-bold text-gradient">
+                    <i class="fas fa-tachometer-alt text-primary me-2"></i>
+                    Inspection Dashboard
+                </h1>
+                <p class="text-muted">Monitor and manage infrastructure defect assessments</p>
+            </div>
+            <div>
+                <a href="{{ url_for('upload') }}" class="btn btn-primary btn-lg shadow">
+                    <i class="fas fa-plus me-2"></i>New Inspection
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4 g-3">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white h-100 border-0 shadow-sm stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="h3 mb-0 fw-bold">{{ stats.total_inspections }}</div>
+                        <div class="small">Total Inspections</div>
+                    </div>
+                    <div class="feature-icon bg-white bg-opacity-10">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white h-100 border-0 shadow-sm stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="h3 mb-0 fw-bold">{{ stats.high_risk_inspections }}</div>
+                        <div class="small">High Risk Items</div>
+                    </div>
+                    <div class="feature-icon bg-white bg-opacity-10">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white h-100 border-0 shadow-sm stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="h3 mb-0 fw-bold">{{ (stats.total_inspections - stats.high_risk_inspections) if stats.total_inspections > 0 else 0 }}</div>
+                        <div class="small">Low-Medium Risk</div>
+                    </div>
+                    <div class="feature-icon bg-white bg-opacity-10">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white h-100 border-0 shadow-sm stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="h3 mb-0 fw-bold">{{ stats.recent_reports|length }}</div>
+                        <div class="small">Recent Reports</div>
+                    </div>
+                    <div class="feature-icon bg-white bg-opacity-10">
+                        <i class="fas fa-file-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0 fw-semibold">
+                    <i class="fas fa-bolt text-warning me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('upload') }}" class="btn btn-outline-primary btn-lg w-100 shadow-sm">
+                            <i class="fas fa-camera me-2"></i>
+                            Start New Inspection
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('list_reports') }}" class="btn btn-outline-secondary btn-lg w-100 shadow-sm">
+                            <i class="fas fa-folder-open me-2"></i>
+                            Browse All Reports
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-info btn-lg w-100 shadow-sm" onclick="showHelp()">
+                            <i class="fas fa-question-circle me-2"></i>
+                            View Help Guide
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Inspections -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center bg-white border-0">
+                <h5 class="card-title mb-0 fw-semibold">
+                    <i class="fas fa-history text-info me-2"></i>
+                    Recent Inspections
+                </h5>
+                {% if stats.recent_reports %}
+                    <a href="{{ url_for('list_reports') }}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if stats.recent_reports %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Filename</th>
+                                    <th>Type</th>
+                                    <th>Risk Level</th>
+                                    <th>Defects Found</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in stats.recent_reports %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">INS-{{ '%06d'|format(report.id) }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-image text-muted me-2"></i>
+                                            <span class="text-truncate" style="max-width: 200px;" title="{{ report.filename }}">
+                                                {{ report.filename }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ report.infrastructure_type or 'General' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% set severity_class = {'low': 'success', 'medium': 'warning', 'high': 'danger'} %}
+                                        <span class="badge bg-{{ severity_class.get(report.overall_severity, 'secondary') }}">
+                                            {{ report.overall_severity.upper() if report.overall_severity else 'UNKNOWN' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-primary me-1">{{ report.total_defects }}</span>
+                                            {% if report.total_defects > 0 %}
+                                                <small class="text-muted">
+                                                    ({{ report.risk_score|round(1) }}% risk)
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ report.created_at.strftime('%m/%d/%Y') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('view_results', report_id=report.id) }}" 
+                                               class="btn btn-outline-primary" title="View Results">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('generate_report', report_id=report.id) }}" 
+                                               class="btn btn-outline-success" title="Download Report">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Inspections Yet</h5>
+                        <p class="text-muted">Start your first infrastructure inspection to see results here.</p>
+                        <a href="{{ url_for('upload') }}" class="btn btn-primary shadow">
+                            <i class="fas fa-plus me-2"></i>Create First Inspection
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Information -->
+{% if not stats.recent_reports %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-icon mb-2 shadow-sm">
+                            <i class="fas fa-robot fa-2x text-primary"></i>
+                        </div>
+                        <h6 class="fw-semibold">AI-Powered Detection</h6>
+                        <p class="small text-muted">Advanced computer vision algorithms detect cracks, corrosion, spalling, and structural damage.</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-icon mb-2 shadow-sm">
+                            <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                        </div>
+                        <h6 class="fw-semibold">Professional Reports</h6>
+                        <p class="small text-muted">Generate comprehensive PDF reports with findings, recommendations, and technical details.</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-icon mb-2 shadow-sm">
+                            <i class="fas fa-shield-alt fa-2x text-success"></i>
+                        </div>
+                        <h6 class="fw-semibold">Offline Processing</h6>
+                        <p class="small text-muted">All analysis performed locally for complete data privacy and security.</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-icon mb-2 shadow-sm">
+                            <i class="fas fa-chart-line fa-2x text-info"></i>
+                        </div>
+                        <h6 class="fw-semibold">Risk Assessment</h6>
+                        <p class="small text-muted">Automated severity classification and risk scoring for prioritized maintenance planning.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any dashboard-specific JavaScript here
+    console.log('Dashboard loaded with {{ stats.total_inspections }} total inspections');
+});
+</script>
+<style>
+/* Extra dashboard enhancements */
+.text-gradient {
+    background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.stat-card .feature-icon {
+    box-shadow: 0 2px 8px rgba(80,120,200,0.08);
+}
+</style>
+{% endblock %}

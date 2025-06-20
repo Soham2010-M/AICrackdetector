@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}New Inspection - Civil Infrastructure Defect Detection{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Page Header -->
+        <div class="text-center mb-4">
+            <h1 class="h2 mb-2">
+                <i class="fas fa-upload text-primary me-2"></i>
+                New Infrastructure Inspection
+            </h1>
+            <p class="text-muted">Upload an image for AI-powered defect detection and assessment</p>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-camera me-2"></i>
+                    Image Upload & Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('process_upload') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+                    <!-- File Upload Section -->
+                    <div class="mb-4">
+                        <label for="file" class="form-label">
+                            <strong>Select Infrastructure Image</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="upload-area border-2 border-dashed rounded p-4 text-center" id="uploadArea">
+                            <div id="dropZone">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Drag & Drop Image Here</h5>
+                                <p class="text-muted mb-3">or click to browse files</p>
+                                <input type="file" id="file" name="file" class="form-control d-none" accept="image/*" required>
+                                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('file').click()">
+                                    <i class="fas fa-folder-open me-2"></i>Browse Files
+                                </button>
+                            </div>
+                            <div id="filePreview" class="d-none">
+                                <img id="previewImage" class="img-fluid rounded mb-3" style="max-height: 300px;">
+                                <div id="fileInfo" class="text-start"></div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="clearFile()">
+                                    <i class="fas fa-times me-1"></i>Remove
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle text-info me-1"></i>
+                            Supported formats: JPG, PNG, BMP, TIFF, WebP • Maximum size: 16MB
+                        </div>
+                    </div>
+
+                    <!-- Infrastructure Information -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="infrastructure_type" class="form-label">Infrastructure Type</label>
+                            <select class="form-select" id="infrastructure_type" name="infrastructure_type">
+                                <option value="General">General Structure</option>
+                                <option value="Bridge">Bridge</option>
+                                <option value="Building">Building</option>
+                                <option value="Road">Road/Pavement</option>
+                                <option value="Tunnel">Tunnel</option>
+                                <option value="Dam">Dam</option>
+                                <option value="Retaining Wall">Retaining Wall</option>
+                                <option value="Parking Structure">Parking Structure</option>
+                                <option value="Pipeline">Pipeline</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="location" class="form-label">Location (Optional)</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   placeholder="e.g., Main St Bridge, Building A Floor 3">
+                        </div>
+                    </div>
+
+                    <!-- Inspector Notes -->
+                    <div class="mb-4">
+                        <label for="inspector_notes" class="form-label">Inspector Notes (Optional)</label>
+                        <textarea class="form-control" id="inspector_notes" name="inspector_notes" rows="3"
+                                  placeholder="Additional observations, conditions, or context about this inspection..."></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="fas fa-search me-2"></i>Analyze Image
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Panel -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>
+                    Detection Capabilities
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">
+                            <i class="fas fa-bug me-2"></i>Defect Types Detected
+                        </h6>
+                        <ul class="list-unstyled small">
+                            <li><i class="fas fa-check text-success me-2"></i><strong>Cracks:</strong> Linear fractures and fissures</li>
+                            <li><i class="fas fa-check text-success me-2"></i><strong>Corrosion:</strong> Metal rust and deterioration</li>
+                            <li><i class="fas fa-check text-success me-2"></i><strong>Spalling:</strong> Surface material loss</li>
+                            <li><i class="fas fa-check text-success me-2"></i><strong>Structural Damage:</strong> Major deformation</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-info">
+                            <i class="fas fa-chart-bar me-2"></i>Analysis Features
+                        </h6>
+                        <ul class="list-unstyled small">
+                            <li><i class="fas fa-check text-success me-2"></i>Severity classification (Low/Medium/High)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Confidence scoring</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Risk assessment</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Maintenance recommendations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="alert alert-info mt-4" role="alert">
+            <h6 class="alert-heading">
+                <i class="fas fa-camera me-2"></i>Photography Best Practices
+            </h6>
+            <ul class="mb-0 small">
+                <li>Ensure good lighting conditions for clear visibility</li>
+                <li>Take photos perpendicular to the surface when possible</li>
+                <li>Include reference objects for scale if available</li>
+                <li>Focus on specific areas of concern rather than wide shots</li>
+                <li>Avoid shadows and reflections that may obscure defects</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Modal -->
+<div class="modal fade" id="processingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Analyzing Image...</h5>
+                <p class="text-muted mb-0">AI is detecting defects in your infrastructure image</p>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file');
+    const uploadArea = document.getElementById('uploadArea');
+    const dropZone = document.getElementById('dropZone');
+    const filePreview = document.getElementById('filePreview');
+    const previewImage = document.getElementById('previewImage');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadForm = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // File drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('border-primary', 'bg-light');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('border-primary', 'bg-light');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('border-primary', 'bg-light');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(files[0]);
+        }
+    });
+
+    // File input change handler
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    // Handle file selection
+    function handleFileSelect(file) {
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPG, PNG, BMP, TIFF, WebP).');
+            return;
+        }
+
+        // Validate file size (16MB)
+        if (file.size > 16 * 1024 * 1024) {
+            alert('File size must be less than 16MB.');
+            return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            dropZone.classList.add('d-none');
+            filePreview.classList.remove('d-none');
+            
+            // Show file info
+            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+            fileInfo.innerHTML = `
+                <div class="row small">
+                    <div class="col-6"><strong>Filename:</strong></div>
+                    <div class="col-6">${file.name}</div>
+                    <div class="col-6"><strong>Size:</strong></div>
+                    <div class="col-6">${sizeInMB} MB</div>
+                    <div class="col-6"><strong>Type:</strong></div>
+                    <div class="col-6">${file.type}</div>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Clear file function
+    window.clearFile = function() {
+        fileInput.value = '';
+        dropZone.classList.remove('d-none');
+        filePreview.classList.add('d-none');
+        previewImage.src = '';
+        fileInfo.innerHTML = '';
+    };
+
+    // Form submission handler
+    uploadForm.addEventListener('submit', function(e) {
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            alert('Please select an image file to analyze.');
+            return;
+        }
+
+        // Show processing modal
+        const processingModal = new bootstrap.Modal(document.getElementById('processingModal'));
+        processingModal.show();
+
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    });
+
+    // Auto-focus on file input when page loads
+    setTimeout(() => {
+        uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 500);
+});
+</script>
+{% endblock %}

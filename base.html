@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Civil Infrastructure Defect Detection{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <!-- Enhanced Design Styles -->
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e3e9f7 100%);
+            min-height: 100vh;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            letter-spacing: 1px;
+            font-size: 1.35rem;
+        }
+        .navbar {
+            border-radius: 0 0 1rem 1rem;
+        }
+        .card {
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(80, 120, 200, 0.07);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 8px 32px rgba(80, 120, 200, 0.15);
+            transform: translateY(-2px) scale(1.01);
+        }
+        .feature-icon {
+            background: #f0f4fa;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px auto;
+        }
+        .btn-primary, .btn-success, .btn-info, .btn-danger, .btn-secondary {
+            border-radius: 2rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: box-shadow 0.2s;
+        }
+        .btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-danger:hover, .btn-secondary:hover {
+            box-shadow: 0 4px 16px rgba(80, 120, 200, 0.12);
+        }
+        .table thead th {
+            background: #f0f4fa;
+            border-bottom: 2px solid #e3e9f7;
+        }
+        .table-hover tbody tr:hover {
+            background: #f8fafc;
+        }
+        footer {
+            border-top: 1px solid #e3e9f7;
+            box-shadow: 0 -2px 16px rgba(80, 120, 200, 0.04);
+            border-radius: 1rem 1rem 0 0;
+        }
+        .modal-content {
+            border-radius: 1rem;
+        }
+        /* Responsive tweaks */
+        @media (max-width: 767px) {
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            .card {
+                border-radius: 0.7rem;
+            }
+            footer {
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-building me-2"></i>
+                Infrastructure Inspector
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('upload') }}">
+                            <i class="fas fa-upload me-1"></i>New Inspection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('list_reports') }}">
+                            <i class="fas fa-file-alt me-1"></i>All Reports
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cog me-1"></i>Tools
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="showHelp()">
+                                <i class="fas fa-question-circle me-2"></i>Help
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('ai_explanation') }}">
+                                <i class="fas fa-brain me-2"></i>How AI Works
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showAbout()">
+                                <i class="fas fa-info-circle me-2"></i>About
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Civil Infrastructure Defect Detection</h6>
+                    <p class="text-muted small mb-0">
+                        Professional AI-powered inspection and assessment tool for civil infrastructure monitoring.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted small mb-1">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Offline Processing • Privacy Protected
+                    </p>
+                    <p class="text-muted small mb-0">
+                        Version 1.0 • {{ moment().format('YYYY') if moment else '2025' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-question-circle me-2"></i>Help & Instructions
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-upload text-primary me-2"></i>Getting Started</h6>
+                            <ol class="small">
+                                <li>Click "New Inspection" to upload an image</li>
+                                <li>Select your infrastructure image file</li>
+                                <li>Fill in location and type information</li>
+                                <li>Submit for AI analysis</li>
+                                <li>Review results and download report</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-eye text-info me-2"></i>Supported Defects</h6>
+                            <ul class="small">
+                                <li><strong>Cracks:</strong> Linear structural fractures</li>
+                                <li><strong>Corrosion:</strong> Metal deterioration and rust</li>
+                                <li><strong>Spalling:</strong> Surface material loss</li>
+                                <li><strong>Structural Damage:</strong> Major deformation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6><i class="fas fa-file-image text-success me-2"></i>Image Requirements</h6>
+                    <p class="small">
+                        • Supported formats: JPG, PNG, BMP, TIFF, WebP<br>
+                        • Maximum file size: 16MB<br>
+                        • Recommended: High-resolution, well-lit images<br>
+                        • Best results: Clear, focused shots of structural elements
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>About This System
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <strong>Civil Infrastructure Defect Detection System</strong> is a professional-grade 
+                        AI-powered tool for automated inspection and assessment of civil infrastructure components.
+                    </p>
+                    <h6>Key Features:</h6>
+                    <ul class="small">
+                        <li>Advanced computer vision defect detection</li>
+                        <li>Multi-type defect identification and classification</li>
+                        <li>Professional PDF report generation</li>
+                        <li>Severity assessment and risk scoring</li>
+                        <li>Maintenance recommendations</li>
+                        <li>Complete offline operation for data security</li>
+                    </ul>
+                    <hr>
+                    <p class="small text-muted">
+                        This system uses advanced computer vision algorithms to detect structural defects 
+                        including cracks, corrosion, spalling, and structural damage. All processing is 
+                        performed locally to ensure data privacy and security.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
